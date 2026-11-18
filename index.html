@@ -1,0 +1,144 @@
+<!doctype html>
+<html lang="es-MX">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <title>Mi Billetera Lite</title>
+  <meta name="description" content="Registra tus gastos diarios, incluso sin conexión.">
+  <meta name="theme-color" content="#f2f2f7" media="(prefers-color-scheme: light)">
+  <meta name="theme-color" content="#000000" media="(prefers-color-scheme: dark)">
+
+  <!-- PWA -->
+  <link rel="manifest" href="manifest.json">
+  <link rel="icon" type="image/png" sizes="32x32" href="icons/favicon-32.png">
+  <link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
+  <meta name="mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-title" content="Billetera">
+
+  <link rel="stylesheet" href="css/styles.css">
+  <script type="module" src="js/app.js"></script>
+</head>
+<body>
+  <!-- Íconos SVG reutilizables -->
+  <svg class="sprite" aria-hidden="true">
+    <symbol id="i-comida" viewBox="0 0 24 24">
+      <path d="M3 2v7c0 1.1.9 2 2 2h4a2 2 0 0 0 2-2V2M7 2v20M21 15V2a5 5 0 0 0-5 5v6c0 1.1.9 2 2 2h3zm0 0v7"/>
+    </symbol>
+    <symbol id="i-transporte" viewBox="0 0 24 24">
+      <rect x="4" y="3" width="16" height="15" rx="3"/>
+      <path d="M4 11h16M8 18v3M16 18v3M8 14.5h.01M16 14.5h.01"/>
+    </symbol>
+    <symbol id="i-servicios" viewBox="0 0 24 24">
+      <path d="M13 2 4 14h7l-1 8 9-12h-7l1-8z"/>
+    </symbol>
+    <symbol id="i-ocio" viewBox="0 0 24 24">
+      <path d="M3 7h18v3a2 2 0 0 0 0 4v3H3v-3a2 2 0 0 0 0-4z"/>
+      <path d="M14 7v2M14 11v2M14 15v2"/>
+    </symbol>
+    <symbol id="i-otros" viewBox="0 0 24 24">
+      <path d="M6 12h.01M12 12h.01M18 12h.01"/>
+    </symbol>
+    <symbol id="i-eliminar" viewBox="0 0 24 24">
+      <path d="M4 7h16M10 11v6M14 11v6M6 7l1 13h10l1-13M9 7V4h6v3"/>
+    </symbol>
+    <symbol id="i-selector" viewBox="0 0 24 24">
+      <path d="m8 9 4-4 4 4M8 15l4 4 4-4"/>
+    </symbol>
+  </svg>
+
+  <!-- Barra de navegación translúcida -->
+  <header id="nav" class="nav-bar">
+    <div class="nav-inner">
+      <span id="estado-red" class="status" role="status">En línea</span>
+      <p class="nav-title" aria-hidden="true">Mi Billetera Lite</p>
+      <button id="btn-instalar" type="button" class="btn-text" hidden>Instalar</button>
+    </div>
+  </header>
+
+  <main class="page">
+    <h1 id="titulo" class="large-title">Mi Billetera Lite</h1>
+
+    <div class="layout">
+      <div class="col">
+        <!-- Totalizador -->
+        <section class="group total" aria-labelledby="total-label">
+          <p id="total-label" class="total-label">Total gastado</p>
+          <p id="total-monto" class="total-monto" aria-live="polite">$0.00</p>
+          <p id="total-conteo" class="total-conteo">Sin gastos registrados</p>
+        </section>
+
+        <!-- Formulario de registro -->
+        <section aria-labelledby="form-titulo">
+          <h2 id="form-titulo" class="section-title">Nuevo gasto</h2>
+          <form id="form-gasto" novalidate>
+            <div class="group">
+              <div class="row">
+                <label for="concepto">Concepto</label>
+                <input id="concepto" name="concepto" type="text" placeholder="Café" maxlength="60"
+                       autocomplete="off" required aria-describedby="concepto-error">
+                <p id="concepto-error" class="row-error" hidden></p>
+              </div>
+
+              <div class="row">
+                <label for="monto">Monto</label>
+                <div class="input-prefix">
+                  <span aria-hidden="true">$</span>
+                  <input id="monto" name="monto" type="number" inputmode="decimal" step="0.01" min="0.01"
+                         placeholder="0.00" required aria-describedby="monto-error">
+                </div>
+                <p id="monto-error" class="row-error" hidden></p>
+              </div>
+
+              <div class="row">
+                <label for="categoria">Categoría</label>
+                <div class="select-wrap">
+                  <select id="categoria" name="categoria" required aria-describedby="categoria-error">
+                    <option value="" disabled selected>Elegir</option>
+                    <option value="Comida">Comida</option>
+                    <option value="Transporte">Transporte</option>
+                    <option value="Servicios">Servicios</option>
+                    <option value="Ocio">Ocio</option>
+                    <option value="Otros">Otros</option>
+                  </select>
+                  <svg aria-hidden="true"><use href="#i-selector"></use></svg>
+                </div>
+                <p id="categoria-error" class="row-error" hidden></p>
+              </div>
+            </div>
+
+            <button id="btn-guardar" type="submit" class="btn-primary">Guardar gasto</button>
+          </form>
+        </section>
+      </div>
+
+      <!-- Historial -->
+      <section class="historial" aria-labelledby="historial-titulo">
+        <div class="section-head">
+          <h2 id="historial-titulo" class="section-title">Historial</h2>
+          <span class="section-note">Más reciente primero</span>
+        </div>
+        <div class="group">
+          <ul id="lista-gastos" class="gastos"></ul>
+          <p id="vacio" class="empty">Aún no registras gastos.</p>
+        </div>
+      </section>
+    </div>
+  </main>
+
+  <div id="toast" class="toast" role="status" aria-live="polite"></div>
+
+  <template id="tpl-gasto">
+    <li class="gasto">
+      <span class="gasto-icono" aria-hidden="true"><svg><use href=""></use></svg></span>
+      <div class="gasto-info">
+        <p class="gasto-concepto"></p>
+        <p class="gasto-meta"><span class="gasto-categoria"></span> · <time></time></p>
+      </div>
+      <p class="gasto-monto"></p>
+      <button type="button" class="btn-eliminar">
+        <svg aria-hidden="true"><use href="#i-eliminar"></use></svg>
+      </button>
+    </li>
+  </template>
+</body>
+</html>
